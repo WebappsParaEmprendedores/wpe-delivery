@@ -1,0 +1,26 @@
+[project]
+name = "wpe-delivery"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "WPE", email = "consultas.wpe@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi[standard]>=0.141.1",
+    "pymongo>=4.18.1",
+    "python-dotenv",
+]
+
+# tell Poetry to look in ./app for the package named wpe_delivery
+packages = [
+  { include = "app", from = "app" },
+]
+
+[project.scripts]
+wpe-delivery = "app.main:main"
+
+[build-system]
+requires = ["uv_build>=0.12.5,<0.13.0"]
+build-backend = "uv_build"
