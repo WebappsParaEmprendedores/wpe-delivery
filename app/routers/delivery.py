@@ -1,19 +1,10 @@
-from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException, status
-from pymongo import ReturnDocument
+from fastapi import APIRouter, Depends
 from pymongo.database import Database as PyMongoDatabase
 
 from app.db.database import mongo_db_dependency
 from app.auth.bearer import verify_bearer_token
 from app.models.delivery import DeliveryUpdate
-
-deliveryResponse = {
-	"_id": 0,
-	#"delivery_date": 0,
-	#"driver_code": 0,
-	"created_at": 0,
-	"updated_at": 0,
-}
+from app.services import delivery
 
 router = APIRouter(
 	prefix='/d',
@@ -24,60 +15,19 @@ router = APIRouter(
 # there's some problems with models and mongo, avoid using 'response_model'
 @router.get('/daily/{delivery_date}/{driver_code}')
 def get_daily(delivery_date: str, driver_code: str, db: PyMongoDatabase = Depends(mongo_db_dependency)):
-	deliveries = list(db["deliveries"].find(
-		{
-			'delivery_date': delivery_date,
-			'driver_code': driver_code,
-		},
-		{'_id':0},
-	))
-
-	if not deliveries:
-		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No records found!')
-
-	return deliveries
+	return delivery.get_daily(delivery_date, driver_code, db)
 
 
 @router.get('/marker/{hash}')
 def get_delivery_by_hash(hash: str, db: PyMongoDatabase = Depends(mongo_db_dependency)):
-	delivery = __getByHash(hash, db)
+	return delivery.get_delivery_by_hash(hash, db)
 
-	if delivery is None:
-		raise HTTPException(
-			status_code=404,
-			detail="Record not found",
-		)
-
-	return delivery
 
 @router.put('/marker/{hash}')
 def update_localization(hash: str, posted_data: DeliveryUpdate, db: PyMongoDatabase = Depends(mongo_db_dependency)):
-	try:
-		updated_delivery = db["deliveries"].find_one_and_update(
-			{"hash": hash},
-			{
-				"$set": {
-					"latitude": posted_data.latitude,
-					"longitude": posted_data.longitude,
-					"localization_updated": True,
-					"updated_at": datetime.now(),
-				}
-			},
-			projection=deliveryResponse,
-			return_document=ReturnDocument.AFTER,
-		)
-
-		return updated_delivery
-	except:
-		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Record not found')
+	return delivery.update_localization(hash, posted_data, db)
 
 
-# privates
-def __getByHash(hash:str, db:PyMongoDatabase):
-	return db["deliveries"].find_one(
-		{"hash": hash},
-		deliveryResponse,
-	)
 
 
 """
