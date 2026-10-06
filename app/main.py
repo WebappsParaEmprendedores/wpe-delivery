@@ -6,6 +6,7 @@ from app.db.database import mongo_lifespan
 from app.config import settings
 from app.middleware.credits import my_credits
 from app.routers.delivery import router as delivery_router
+from app.routers.user import router as user_router
 
 debug_enabled = settings.APP_DEBUG.lower() in {"1", "true", "yes", "on"}
 
@@ -34,6 +35,7 @@ app.add_middleware(
 )
 
 app.include_router(delivery_router)
+app.include_router(user_router)
 
 @app.get("/")
 def root():

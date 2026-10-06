@@ -1,7 +1,10 @@
 from fastapi import APIRouter
 
 router = APIRouter(
-	prefix='/login',
+	prefix='/auth',
 	tags=['Admin']
 )
 
+@router.get('')
+def test_me():
+	return {'msg': 'successs', 'connected': True}
